@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/liugl/!svn/ver/192/catkin_ws/src/mapstitch/src
+END
+main.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/liugl/!svn/ver/192/catkin_ws/src/mapstitch/src/main.cpp
+END
+rosmain.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/liugl/!svn/ver/192/catkin_ws/src/mapstitch/src/rosmain.cpp
+END
+mapstitch.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/liugl/!svn/ver/192/catkin_ws/src/mapstitch/src/mapstitch.cpp
+END

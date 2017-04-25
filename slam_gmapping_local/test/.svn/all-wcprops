@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/test
+END
+rtest.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/test/rtest.cpp
+END
+test_map.py
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/test/test_map.py
+END
+basic_localization_stage.launch
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/test/basic_localization_stage.launch
+END
+basic_localization_laser_different_beamcount.test
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/test/basic_localization_laser_different_beamcount.test
+END

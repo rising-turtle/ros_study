@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 2.8)
+project(octomap_server_local)
+
+find_package(catkin REQUIRED pcl_ros nav_msgs roscpp rostest tf)
+find_package(octomap REQUIRED)
+
+include_directories(
+	${catkin_INCLUDE_DIRS}
+	src
+	include
+)
+catkin_package(
+   INCLUDE_DIRS include
+   LIBRARIES ${PROJECT_NAME}
+   CATKIN_DEPENDS pcl_ros nav_msgs roscpp tf
+   DEPENDS eigen octomap 
+)
+
+
+add_library(octomap_server_local src/ColorOctreeImpl.cpp src/octo_globaldef.cpp
+	src/colortable.cpp)
+
+## Mark executables and/or libraries for installation
+install(TARGETS octomap_server_local 
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(DIRECTORY include/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+   PATTERN ".svn" EXCLUDE
+)
+
+

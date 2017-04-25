@@ -1,0 +1,10 @@
+prefix=/home/liugl/Projects/CoProjects/FOM/feaOctomap/install
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: octomap
+Description: octomap
+Requires: 
+Version: 1.6.2
+Libs: -L${libdir}  -loctomap -loctomath
+Cflags: -I${includedir} 

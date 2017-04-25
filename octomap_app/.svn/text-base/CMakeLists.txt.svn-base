@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 2.8)
+project(octomap_app)
+
+find_package(catkin REQUIRED COMPONENTS 
+	nav_msgs roscpp rostest tf 
+	image_transport camera_info_manager pcl_ros
+       	octomap octomap_server_local
+       )
+find_package(octomap REQUIRED)
+find_package(OpenCV REQUIRED)
+
+include_directories(
+	${catkin_INCLUDE_DIRS}
+	src
+	include
+)
+
+catkin_package()
+
+add_executable(main_flr src/main_flr.cpp src/rgbd2ot.cpp)
+target_link_libraries(main_flr ${OCTOMAP_LIBRARIES} ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
+

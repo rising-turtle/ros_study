@@ -1,0 +1,48 @@
+
+<launch>
+
+	<node pkg="tf" type="static_transform_publisher" name="laser_base_broadcaster" args="0 0 0 0 0 0 /base_link /laser_frame 100" >
+	</node>  
+
+	<node pkg="gmapping_app" type="main_gmapping" name="main_gmapping" output="screen" args="/home/davidz/Data/tmp/syn_data.txt">
+    <param name="save_path" value="/home/davidz/work/ros/hydro/src/submap2d/data"/>
+	</node>
+
+	<node pkg="slam_gmapping_local" type="slam_gmapping_local" name="slam_gmapping_local" output="screen">
+
+		<!--remap from="scan" to="base_scan"/-->
+		<param name="odom_frame" value="odom"/>
+		<param name="map_update_interval" value="5.0"/>
+		<param name="throttle_scans" value="1"/>
+		<param name="transform_publish_period" value="0.05"/>
+		<param name="maxUrange" value="10"/>
+		<param name="sigma" value="0.01"/>
+		<param name="kernelSize" value="1"/>
+		<param name="lstep" value="0.05"/>
+		<param name="astep" value="0.05"/>
+		<param name="iterations" value="5"/>
+		<param name="lsigma" value="0.075"/>
+		<param name="ogain" value="3.0"/>
+		<param name="lskip" value="0"/>
+		<param name="srr" value="0.1"/>
+		<param name="srt" value="0.2"/>
+		<param name="str" value="0.1"/>
+		<param name="stt" value="0.2"/>
+		<param name="linearUpdate" value="0.2"/>
+		<param name="angularUpdate" value="0.5"/>
+		<param name="temporalUpdate" value="3.0"/>
+		<param name="resampleThreshold" value="0.5"/>
+		<param name="particles" value="30"/>
+		<param name="xmin" value="-50.0"/>
+		<param name="ymin" value="-50.0"/>
+		<param name="xmax" value="50.0"/>
+		<param name="ymax" value="50.0"/>
+		<param name="delta" value="0.05"/>
+		<param name="llsamplerange" value="0.01"/>
+		<param name="llsamplestep" value="0.01"/>
+		<param name="lasamplerange" value="0.005"/>
+		<param name="lasamplestep" value="0.005"/>
+
+	</node>
+</launch>
+

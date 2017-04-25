@@ -1,0 +1,58 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ImgIndexKdTreeOpenCV	./imgIndex_kdTree_opencv.cpp	/^ImgIndexKdTreeOpenCV::ImgIndexKdTreeOpenCV(void)$/;"	f	class:ImgIndexKdTreeOpenCV
+MAX_XTION_RANGE	./rgbd2ot.cpp	4;"	d	file:
+TrajFilter	./TrajFilter.cpp	/^TrajFilter::TrajFilter(void)$/;"	f	class:TrajFilter
+addFeature	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::addFeature()$/;"	f	class:ImgIndexKdTreeOpenCV
+addFeature	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::addFeature(cv::Mat desc, int img_index)$/;"	f	class:ImgIndexKdTreeOpenCV
+build	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::build()$/;"	f	class:ImgIndexKdTreeOpenCV
+calSpeed	./TrajFilter.cpp	/^float TrajFilter::calSpeed(TRAJ t_current, TRAJ t_early)$/;"	f	class:TrajFilter
+calTimeCost	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::calTimeCost(ofstream& outf)$/;"	f	class:ImgIndexKdTreeOpenCV
+calTimeDiff	./TrajFilter.cpp	/^int TrajFilter::calTimeDiff(TRAJ t_current, TRAJ t_early)$/;"	f	class:TrajFilter
+calTrajMeanSpeed	./TrajFilter.cpp	/^float TrajFilter::calTrajMeanSpeed()$/;"	f	class:TrajFilter
+clean	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::clean()$/;"	f	class:ImgIndexKdTreeOpenCV
+computeInliersAndError	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::computeInliersAndError(const std::vector<cv::DMatch> & all_matches,$/;"	f	class:ImgIndexKdTreeOpenCV
+computeInliersAndError2D	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::computeInliersAndError2D(vector<cv::Point3f> object_points,$/;"	f	class:ImgIndexKdTreeOpenCV
+createXYZRGBPointCloud	./rgbd2ot.cpp	/^pointcloud_type* createXYZRGBPointCloud (const cv::Mat& depth_img, const cv::Mat& rgb_img)$/;"	f
+drawRobotPos	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::drawRobotPos(IplImage* img_map, float x, float y, float z, int r, int g, int b, float conf)$/;"	f	class:ImgIndexKdTreeOpenCV
+errorsFunction2	./imgIndex_kdTree_opencv.cpp	/^double ImgIndexKdTreeOpenCV::errorsFunction2(const Eigen::Vector4f& x1,$/;"	f	class:ImgIndexKdTreeOpenCV
+filterDepthImg	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::filterDepthImg(cv::Mat img_depth, int winSize)$/;"	f	class:ImgIndexKdTreeOpenCV
+getDepthValue	./imgIndex_kdTree_opencv.cpp	/^float ImgIndexKdTreeOpenCV::getDepthValue(cv::Mat img_depth, float x, float y, int winSize)$/;"	f	class:ImgIndexKdTreeOpenCV
+getFeatLocation	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::getFeatLocation(vector<cv::KeyPoint> kp, cv::Mat img_depth)$/;"	f	class:ImgIndexKdTreeOpenCV
+getFeatLocation	./rgbd2feat.cpp	/^void RgbdToFeat::getFeatLocation(vector<cv::KeyPoint> kp, cv::Mat img_depth, vector<POS3D>& pos_3d_dst)$/;"	f	class:RgbdToFeat
+getFeatLocation2D	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::getFeatLocation2D(vector<cv::KeyPoint> kp)$/;"	f	class:ImgIndexKdTreeOpenCV
+getFeatOtFromSynData	./rgbd2ot.cpp	/^void getFeatOtFromSynData(const char* path,  $/;"	f
+getFeats	./rgbd2feat.cpp	/^void RgbdToFeat::getFeats(const char* path, const int port, const double t, const Eigen::Matrix4f trans_gl, const Eigen::Matrix4f trans_lc, $/;"	f	class:RgbdToFeat
+getOtFromSynData	./rgbd2ot.cpp	/^void getOtFromSynData(const char* path,  $/;"	f
+getTransformFromMatchesSolvePnP	./imgIndex_kdTree_opencv.cpp	/^bool ImgIndexKdTreeOpenCV::getTransformFromMatchesSolvePnP(vector<cv::Point3f> object_points, vector<cv::Point2f> image_points, vector<int> match_index, cv::Mat& trans_R, cv::Mat& trans_T)$/;"	f	class:ImgIndexKdTreeOpenCV
+getTransformFromMatchesUmeyama	./imgIndex_kdTree_opencv.cpp	/^Eigen::Matrix4f ImgIndexKdTreeOpenCV::getTransformFromMatchesUmeyama(std_vector_of_eigen_vector4f locs_quiry, std_vector_of_eigen_vector4f locs_map, vector<cv::DMatch> matches)$/;"	f	class:ImgIndexKdTreeOpenCV
+getTransformationRANSAC	./imgIndex_kdTree_opencv.cpp	/^Eigen::Matrix4f ImgIndexKdTreeOpenCV::getTransformationRANSAC(std_vector_of_eigen_vector4f locs_quiry, std_vector_of_eigen_vector4f locs_map, vector<cv::DMatch> matches, float& mean_err, bool& flag)$/;"	f	class:ImgIndexKdTreeOpenCV
+getTransformationRANSAC2D	./imgIndex_kdTree_opencv.cpp	/^bool ImgIndexKdTreeOpenCV::getTransformationRANSAC2D(vector<cv::Point3f> object_points, vector<cv::Point2f> image_points, cv::Mat& rvec, cv::Mat& tvec, double& mean_err)$/;"	f	class:ImgIndexKdTreeOpenCV
+initial	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::initial(string path_global_map, int feat_size, float thrd)$/;"	f	class:ImgIndexKdTreeOpenCV
+loadAllRgbdIndex	./rgbd2ot.cpp	/^void loadAllRgbdIndex(const char* path, const int s_port, const int e_port, vector< std::map<double, string> >& vIndex)$/;"	f
+loadRgbdIndex	./rgbd2ot.cpp	/^void loadRgbdIndex(const char* path, std::map<double, string>& index)$/;"	f
+main	./main_flr.cpp	/^int main(int argc, char** argv)$/;"	f
+main	./main_flru_feature.cpp	/^int main(int argc, char** argv)$/;"	f
+main	./main_flru_new.cpp	/^int main(int argc, char** argv)$/;"	f
+matrix2RPY	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::matrix2RPY(const Eigen::Matrix4f& T, double& roll, double& pitch, double& yaw)$/;"	f	class:ImgIndexKdTreeOpenCV
+ot2pcd	./rgbd2ot.cpp	/^void ot2pcd(const ColorOctreeImpl* m_pOctoTree, pointcloud_type& cloud)$/;"	f
+posFilter	./TrajFilter.cpp	/^void TrajFilter::posFilter(OUTPUT_PARAM& dst, unsigned long int loc_time)$/;"	f	class:TrajFilter
+proc	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::proc(INPUT_PARAM src, OUTPUT_PARAM& dst)$/;"	f	class:ImgIndexKdTreeOpenCV
+quiryLoc	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::quiryLoc(cv::Mat desc, OUTPUT_PARAM& dst)$/;"	f	class:ImgIndexKdTreeOpenCV
+quiryLoc2D	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::quiryLoc2D(cv::Mat desc, OUTPUT_PARAM& dst)$/;"	f	class:ImgIndexKdTreeOpenCV
+readGlobalMap	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::readGlobalMap(string file_name)$/;"	f	class:ImgIndexKdTreeOpenCV
+readPoseData	./rgbd2ot.cpp	/^bool readPoseData(const char* path, std::map<double, vector<double> > & data)$/;"	f
+readSubmap	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::readSubmap(string file_name)$/;"	f	class:ImgIndexKdTreeOpenCV
+reconstructPcd	./rgbd2ot.cpp	/^void reconstructPcd(const char* path, const int port, const double timestamp, $/;"	f
+sample_matches_2D	./imgIndex_kdTree_opencv.cpp	/^vector<int> ImgIndexKdTreeOpenCV::sample_matches_2D(unsigned int sample_size, unsigned int total_size)$/;"	f	class:ImgIndexKdTreeOpenCV
+sample_matches_prefer_by_distance	./imgIndex_kdTree_opencv.cpp	/^vector<cv::DMatch> ImgIndexKdTreeOpenCV::sample_matches_prefer_by_distance(unsigned int sample_size, std::vector<cv::DMatch>& matches_with_depth)$/;"	f	class:ImgIndexKdTreeOpenCV
+squareroot_descriptor_space	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::squareroot_descriptor_space(cv::Mat& descriptors)$/;"	f	class:ImgIndexKdTreeOpenCV
+synPoseToRgbd	./rgbd2ot.cpp	/^void synPoseToRgbd(std::map<double, vector<double> > pose, vector<std::map<double, string> >vIndex, double minTimeItv, $/;"	f
+voteBestLoc	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::voteBestLoc(vector<cv::DMatch> matches, OUTPUT_PARAM& dst)$/;"	f	class:ImgIndexKdTreeOpenCV
+voteBestLoc2D	./imgIndex_kdTree_opencv.cpp	/^void ImgIndexKdTreeOpenCV::voteBestLoc2D(vector<cv::DMatch> matches, OUTPUT_PARAM& dst)$/;"	f	class:ImgIndexKdTreeOpenCV
+~ImgIndexKdTreeOpenCV	./imgIndex_kdTree_opencv.cpp	/^ImgIndexKdTreeOpenCV::~ImgIndexKdTreeOpenCV(void)$/;"	f	class:ImgIndexKdTreeOpenCV
+~TrajFilter	./TrajFilter.cpp	/^TrajFilter::~TrajFilter(void)$/;"	f	class:TrajFilter

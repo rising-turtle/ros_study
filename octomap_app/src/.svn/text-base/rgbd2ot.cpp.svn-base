@@ -1,0 +1,379 @@
+#include "rgbd2ot.h"
+
+//data: idx = [t_odo], value=[x, y, z, qx, qy, qz, qw]
+bool readPoseData(const char* path, std::map<double, vector<double> > & data)
+{
+    ifstream inf(path);
+    if(!inf.is_open() ){
+	cout<<"failed to open file: "<<path<<endl;
+	return false;
+    }
+
+    double t_odo_cur, t_odo;
+    vector<double> v_pose_tmp;
+    v_pose_tmp.resize(7);
+
+    char line[255];
+    string delim(" ");
+    while(inf.good())
+    {
+	inf.getline(line, 255);
+	if(inf.eof())
+	    break;
+	//
+	t_odo_cur = atof(strtok(line,delim.c_str())); // false odo time in current system time
+
+	v_pose_tmp[0] = atof(strtok(NULL,delim.c_str()));
+	v_pose_tmp[1] = atof(strtok(NULL,delim.c_str()));
+	v_pose_tmp[2] = atof(strtok(NULL,delim.c_str()));
+	v_pose_tmp[3] = atof(strtok(NULL,delim.c_str()));
+	v_pose_tmp[4] = atof(strtok(NULL,delim.c_str()));
+	v_pose_tmp[5] = atof(strtok(NULL,delim.c_str()));
+	v_pose_tmp[6] = atof(strtok(NULL,delim.c_str()));
+
+	//real odo timestamp
+	t_odo_cur = atof(strtok(NULL, delim.c_str())); // again: false odo time in current time
+	t_odo = atof(strtok(NULL, delim.c_str())); // real odo time in current time
+
+	data[t_odo] = v_pose_tmp;
+    }
+
+    inf.close();
+    printf("Loaded %d pose data \n", data.size());
+    return true;
+}
+
+//data: idx=[t_odo], value=[t_front, t_left, t_right]
+bool readSynData(const char* path, std::map<double, vector<double> > & data)
+{
+    ifstream inf(path);
+    if(!inf.is_open() ){
+	cout<<"failed to open file: "<<path<<endl;
+	return false;
+    }
+
+    char* p;
+    char line[1024*16];
+    string delim(" ");
+    while(inf.good())
+    {
+	inf.getline(line, 1024*16);
+	if(inf.eof())
+	    break;
+	//odo
+	vector<double> odo;
+	odo.push_back(atof(strtok(line, delim.c_str()))); // t
+	odo.push_back(atof(strtok(NULL, delim.c_str()))/100.); // x
+	odo.push_back(atof(strtok(NULL, delim.c_str()))/100.); // y
+	odo.push_back(atof(strtok(NULL, delim.c_str()))); // theta
+
+	//sick
+	vector<double> sick;
+	sick.push_back( atof(strtok(NULL, delim.c_str())) ); // t
+	for(int i=0;i<541;i++)
+	{
+	    sick.push_back(atof(strtok(NULL, delim.c_str()))/1000.); // range
+	}
+
+	//rgbd timestamps
+	vector<double> rgbd;
+	rgbd.push_back(atof(strtok(NULL, delim.c_str())));
+	p = strtok(NULL, delim.c_str());
+	rgbd.push_back(atof(strtok(NULL, delim.c_str())));
+	p = strtok(NULL, delim.c_str());
+	rgbd.push_back(atof(strtok(NULL, delim.c_str())));
+	p = strtok(NULL, delim.c_str());
+
+	//insert to map
+	data[odo[0]] = rgbd;
+    }
+
+    inf.close();
+    printf("Loaded %d syn data\n", data.size());
+    return true;
+
+}
+
+//reconstruct three cams using available poses
+void reconstructOt(const char* path, const sensor_msgs::CameraInfoConstPtr& depthInfo, std::map<double, vector<double> > pose, std::map<double, vector<double> > rgbd, ColorOctreeImpl* m_pOctoTree)
+{
+
+    //setting for ot
+    m_pOctoTree->clear();
+    m_pOctoTree->setClampingThresMin(0.001);
+    m_pOctoTree->setClampingThresMax(0.999);
+    m_pOctoTree->setOccupancyThres(0.8);
+    m_pOctoTree->setProbHit(0.9);
+    m_pOctoTree->setProbMiss(0.4);
+    float max_range = 4;
+
+    //define transform from gmapping pose to cam
+    tf::Transform gmap2cam, gmapTrans, camTrans, camTrans_pre, camTrans_rel;
+    gmap2cam.setIdentity();
+    float gmap2cam_r=0.;
+    float gmap2cam_p=-90.*D2R;
+    float gmap2cam_y=90.*D2R;
+    gmap2cam.setRotation(tf::createQuaternionFromRPY(gmap2cam_r,gmap2cam_p,gmap2cam_y));
+
+
+    //transform from left and right to front
+    Eigen::Affine3f affine;
+    pcl::getTransformation (-0.13, 0, -0.21, 0., -90.*D2R, 0., affine);
+    Eigen::Matrix4f trans_left = affine.matrix();
+    pcl::getTransformation (0.16, 0, -0.18, 0., 90.*D2R, 0., affine);
+    Eigen::Matrix4f trans_right= affine.matrix();
+
+    float x,y,z,qx,qy,qz,qw;
+
+
+    std::map<double, vector<double> >::iterator it_rgbd;
+    std::map<double, vector<double> >::iterator it_pose;
+
+    char rgbName[255];
+    char depthName[255];
+    int i =0 ;
+    char key = 0;
+
+    for(it_rgbd=rgbd.begin(); it_rgbd!=rgbd.end() && key!=27; it_rgbd++)
+    {
+	i++;
+	printf("processing >> (%d/%d)\n", i, rgbd.size());
+
+	it_pose = pose.find(it_rgbd->first);
+	if(it_pose != pose.end())
+	{
+	    //find one pose and going to reconstruct it
+	    //gmap to cam
+	    x = it_pose->second[0];
+	    y = it_pose->second[1];
+	    z = it_pose->second[2];
+	    qx = it_pose->second[3];
+	    qy = it_pose->second[4];
+	    qz = it_pose->second[5];
+	    qw = it_pose->second[6];
+	    tf::Vector3 tr(x,y,z);
+	    tf::Quaternion q(qx,qy,qz,qw);
+	    gmapTrans.setRotation(q);
+	    gmapTrans.setOrigin(tr);
+	    camTrans = gmap2cam*gmapTrans*gmap2cam.inverse();
+
+	    //reconstruct front
+	    pointcloud_type::Ptr pcd_agg (new pcl::PointCloud<point_type>);
+	    double t = it_rgbd->second[0];
+	    {
+
+		sprintf(rgbName, "%s/front/rgb/%f.png", path, t);
+		sprintf(depthName, "%s/front/depth/%f.png", path, t);
+
+		cv::Mat rgb_img = imread(rgbName, -1);
+		cv::Mat depth_img = imread(depthName, -1);
+
+		if(!rgb_img.data || !depth_img.data )                              // Check for invalid input
+		{
+		    printf("No Image Found, but Continue! \n");
+		    i++;
+		    continue;
+		}
+
+		//convert depth_img from 16uc1 to 32fc1
+		cv::Mat float_img;
+		depth_img.convertTo(float_img, CV_32FC1, 0.001, 0);//From mm to m(scale of depth_img matters)
+		depth_img = float_img;
+
+		//reconstruct
+		pointcloud_type::Ptr pcd;
+		pcd =pointcloud_type::Ptr( createXYZRGBPointCloud(depth_img,rgb_img, depthInfo));
+		*pcd_agg = *pcd;
+
+		//show
+		imshow("Display image",rgb_img);
+		imshow("Display depth",depth_img);
+		key=cvWaitKey(20);
+	    }
+	    //reconstruct left
+	    t = it_rgbd->second[1];
+	    {
+		sprintf(rgbName, "%s/left/rgb/%f.png", path, t);
+		sprintf(depthName, "%s/left/depth/%f.png", path, t);
+
+		cv::Mat rgb_img = imread(rgbName, -1);
+		cv::Mat depth_img = imread(depthName, -1);
+
+		if(!rgb_img.data || !depth_img.data )                              // Check for invalid input
+		{
+		    printf("No Image Found, but Continue! \n");
+		    i++;
+		    continue;
+		}
+
+		//convert depth_img from 16uc1 to 32fc1
+		cv::Mat float_img;
+		depth_img.convertTo(float_img, CV_32FC1, 0.001, 0);//From mm to m(scale of depth_img matters)
+		depth_img = float_img;
+
+		//reconstruct
+		pointcloud_type::Ptr pcd;
+		pcd =pointcloud_type::Ptr( createXYZRGBPointCloud(depth_img,rgb_img, depthInfo));
+
+		pcl::transformPointCloud ( *pcd, *pcd, trans_left);
+		*pcd_agg += *pcd;
+	    }
+	    t = it_rgbd->second[2];
+	    {
+		sprintf(rgbName, "%s/right/rgb/%f.png", path, t);
+		sprintf(depthName, "%s/right/depth/%f.png", path, t);
+
+		cv::Mat rgb_img = imread(rgbName, -1);
+		cv::Mat depth_img = imread(depthName, -1);
+
+		if(!rgb_img.data || !depth_img.data )                              // Check for invalid input
+		{
+		    printf("No Image Found, but Continue! \n");
+		    i++;
+		    continue;
+		}
+
+		//convert depth_img from 16uc1 to 32fc1
+		cv::Mat float_img;
+		depth_img.convertTo(float_img, CV_32FC1, 0.001, 0);//From mm to m(scale of depth_img matters)
+		depth_img = float_img;
+
+		//reconstruct
+		pointcloud_type::Ptr pcd;
+		pcd =pointcloud_type::Ptr( createXYZRGBPointCloud(depth_img,rgb_img, depthInfo));
+
+		pcl::transformPointCloud ( *pcd, *pcd, trans_right);
+		*pcd_agg += *pcd;
+	    }
+
+	    //octomap server update
+	    //convert pose from ros to octomath, i.e., octo quanterion is different [w,x,y,z]
+	    float p[7];
+	    p[0] = camTrans.getOrigin().getX();
+	    p[1] = camTrans.getOrigin().getY();
+	    p[2] = camTrans.getOrigin().getZ();
+	    p[3] = camTrans.getRotation().getW();
+	    p[4] = camTrans.getRotation().getX();
+	    p[5] = camTrans.getRotation().getY();
+	    p[6] = camTrans.getRotation().getZ();
+	    m_pOctoTree->insertPointCloud(*(pcd_agg), p, max_range);//octomap should use max_range to define which part will be updated
+	    m_pOctoTree->updateInnerOccupancy();
+	}
+
+    }
+}
+
+
+void ot2pcd(const ColorOctreeImpl* m_pOctoTree, pointcloud_type& cloud)
+{
+    for(octomap::ColorOcTree::leaf_iterator it = m_pOctoTree->begin_leafs(), end=m_pOctoTree->end_leafs(); it!= end; ++it)
+    {
+	if(m_pOctoTree->isNodeOccupied(*it))
+	{
+	    octomap::point3d pt = it.getCoordinate();
+	    octomap::ColorOcTreeNode::Color color = (*it).getColor();
+	    point_type color_pt(color.r, color.g, color.b);
+	    color_pt.x = pt(0); color_pt.y = pt(1); color_pt.z = pt(2);
+	    cloud.points.push_back(color_pt);
+	}
+    }
+
+
+}
+
+
+// depth_img must be 32fc1
+pointcloud_type* createXYZRGBPointCloud (const cv::Mat& depth_img, 
+		const cv::Mat& rgb_img,
+		const sensor_msgs::CameraInfoConstPtr& cam_info)
+{
+	pointcloud_type* cloud (new pointcloud_type() );
+	cloud->is_dense         = false; //single point of view, 2d rasterized NaN where no depth value was found
+
+	float fx = 1./ cam_info->K[0]; //(cloud->width >> 1) - 0.5f;
+	float fy = 1./ cam_info->K[4]; //(cloud->width >> 1) - 0.5f;
+	float cx = cam_info->K[2]; //(cloud->width >> 1) - 0.5f;
+	float cy = cam_info->K[5]; //(cloud->width >> 1) - 0.5f;
+	int data_skip_step = 1;
+	if(depth_img.rows % data_skip_step != 0 || depth_img.cols % data_skip_step != 0){
+		ROS_WARN("The parameter cloud_creation_skip_step is not a divisor of the depth image dimensions. This will most likely crash the program!");
+	}
+	cloud->height = ceil(depth_img.rows / static_cast<float>(data_skip_step));
+	cloud->width = ceil(depth_img.cols / static_cast<float>(data_skip_step));
+	//cx = cam_info->K[2]; //(cloud->width >> 1) - 0.5f;
+	//cy = cam_info->K[5]; //(cloud->height >> 1) - 0.5f;
+	//fx = 1.0f / cam_info->K[0];
+	//fy = 1.0f / cam_info->K[4];
+	int pixel_data_size = 3;
+	bool encoding_bgr = true;
+	//Assume BGR
+	//char red_idx = 2, green_idx = 1, blue_idx = 0;
+	//Assume RGB
+	char red_idx = 0, green_idx = 1, blue_idx = 2;
+	if(rgb_img.type() == CV_8UC1) pixel_data_size = 1;
+	else if(encoding_bgr) { red_idx = 2; blue_idx = 0; }
+
+	unsigned int color_row_step, color_pix_step, depth_pix_step, depth_row_step;
+	color_pix_step = pixel_data_size * (rgb_img.cols / cloud->width);
+	color_row_step = pixel_data_size * (rgb_img.rows / cloud->height -1 ) * rgb_img.cols;
+	depth_pix_step = (depth_img.cols / cloud->width);
+	depth_row_step = (depth_img.rows / cloud->height -1 ) * depth_img.cols;
+
+	cloud->points.resize (cloud->height * cloud->width);
+
+	// depth_img already has the desired dimensions, but rgb_img may be higher res.
+	int color_idx = 0 * color_pix_step - 0 * color_row_step, depth_idx = 0; //FIXME: Hack for hard-coded calibration of color to depth
+	double depth_scaling = 1.;
+	float max_depth = 4.;
+	float min_depth = 0.5;
+	if(max_depth < 0.0) max_depth = std::numeric_limits<float>::infinity();
+
+	pointcloud_type::iterator pt_iter = cloud->begin();
+	for (int v = 0; v < (int)rgb_img.rows; v += data_skip_step, color_idx += color_row_step, depth_idx += depth_row_step)
+	{
+		for (int u = 0; u < (int)rgb_img.cols; u += data_skip_step, color_idx += color_pix_step, depth_idx += depth_pix_step, ++pt_iter)
+		{
+			if(pt_iter == cloud->end()){
+				break;
+			}
+			point_type& pt = *pt_iter;
+			if(u < 0 || v < 0 || u >= depth_img.cols || v >= depth_img.rows){
+				pt.x = std::numeric_limits<float>::quiet_NaN();
+				pt.y = std::numeric_limits<float>::quiet_NaN();
+				pt.z = std::numeric_limits<float>::quiet_NaN();
+				continue;
+			}
+
+			float Z = depth_img.at<float>(depth_idx) * depth_scaling;
+
+			// Check for invalid measurements
+			if (!(Z >= min_depth)) //Should also be trigger on NaN//std::isnan (Z))
+			{
+				pt.x = (u - cx) * 1.0 * fx; //FIXME: better solution as to act as at 1meter?
+				pt.y = (v - cy) * 1.0 * fy;
+				pt.z = std::numeric_limits<float>::quiet_NaN();
+			}
+			else // Fill in XYZ
+			{
+				pt.x = (u - cx) * Z * fx;
+				pt.y = (v - cy) * Z * fy;
+				pt.z = Z;
+			}
+			// Fill in color
+			RGBValue color;
+			if(color_idx > 0 && color_idx < rgb_img.total()*color_pix_step){ //Only necessary because of the color_idx offset
+				if(pixel_data_size == 3){
+					color.Red   = rgb_img.at<uint8_t>(color_idx + red_idx);
+					color.Green = rgb_img.at<uint8_t>(color_idx + green_idx);
+					color.Blue  = rgb_img.at<uint8_t>(color_idx + blue_idx);
+				} else {
+					color.Red   = color.Green = color.Blue  = rgb_img.at<uint8_t>(color_idx);
+				}
+				color.Alpha = 0;
+				pt.rgb = color.float_value;
+			}
+		}
+	}
+
+	return cloud;
+}

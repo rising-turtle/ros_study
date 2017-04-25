@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local
+END
+package.xml
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/package.xml
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/CMakeLists.txt
+END
+CHANGELOG.rst
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/liugl/!svn/ver/192/catkin_ws/src/slam_gmapping_local/CHANGELOG.rst
+END

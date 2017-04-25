@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/liugl/!svn/ver/196/catkin_ws/src/gmapping_app/launch
+END
+gmapping_flr.launch
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/liugl/!svn/ver/194/catkin_ws/src/gmapping_app/launch/gmapping_flr.launch
+END
+gmapping_amcl.launch
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/liugl/!svn/ver/196/catkin_ws/src/gmapping_app/launch/gmapping_amcl.launch
+END
+gmapping_flrsyn.launch
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/liugl/!svn/ver/192/catkin_ws/src/gmapping_app/launch/gmapping_flrsyn.launch
+END
+gmapping.launch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/liugl/!svn/ver/201/catkin_ws/src/gmapping_app/launch/gmapping.launch
+END

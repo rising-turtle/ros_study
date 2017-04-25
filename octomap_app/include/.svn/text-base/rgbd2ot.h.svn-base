@@ -1,0 +1,71 @@
+#ifndef RGBD2OT_H
+#define RGBD2OT_H
+
+
+#include <stdlib.h>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <unistd.h>
+#include <map>
+
+//opencv
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
+#include <opencv/cvwimage.h>
+
+//ros
+#include <ros/ros.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/common/eigen.h>
+#include <pcl/registration/transforms.h>
+#include "tf/tf.h"
+#include <tf/transform_broadcaster.h>
+#include "std_msgs/String.h"
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <camera_info_manager/camera_info_manager.h>
+
+
+#include "ColorOctreeImpl.h"
+
+#define D2R 0.017453 //pi/180
+#define R2D 57.296 //180/pi
+#define PI 3.1415926
+
+typedef pcl::PointXYZRGB point_type;
+typedef pcl::PointCloud<point_type> pointcloud_type;
+
+typedef union
+{
+	struct /*anonymous*/
+	{
+		unsigned char Blue;
+		unsigned char Green;
+		unsigned char Red;
+		unsigned char Alpha;
+	};
+	float float_value;
+	long long_value;
+} RGBValue;
+
+
+using namespace std;
+using namespace cv;
+
+
+pointcloud_type* createXYZRGBPointCloud (const cv::Mat& depth_img, 
+		const cv::Mat& rgb_img,
+		const sensor_msgs::CameraInfoConstPtr& cam_info);
+
+bool readPoseData(const char*, std::map<double, vector<double> > &);
+bool readSynData(const char*, std::map<double, vector<double> > &);
+void reconstructOt(const char* , const sensor_msgs::CameraInfoConstPtr& , std::map<double, vector<double> > , std::map<double, vector<double> > , ColorOctreeImpl* );
+void ot2pcd(const ColorOctreeImpl* m_pOctoTree, pointcloud_type& cloud);
+
+
+#endif
+
