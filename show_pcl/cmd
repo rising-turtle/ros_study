@@ -1,0 +1,10 @@
+	  camera_cx camera_cy camera_fx camera_fy
+R200: 323.71699 228.84229 608.16731 605.70031
+
+F200: 316.00314 244.68197 606.50798 607.07558
+
+
+'/home/jin/Q/show_pcl_03_13_2017/bin/generate_pointcloud' \
+      316.00314 244.68197 606.50798 607.07558 \
+      '/home/jin/myImage/03_14_2017_etas_xytable/color/000184.png'  \
+      '/home/jin/myImage/03_14_2017_etas_xytable/depth/000184.png' 

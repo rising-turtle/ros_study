@@ -1,137 +1,112 @@
-/*
- * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the names of Stanford University or Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived from
- *     this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-// %Tag(FULLTEXT)%
-// %Tag(ROS_HEADER)%
 #include "ros/ros.h"
-// %EndTag(ROS_HEADER)%
-// %Tag(MSG_HEADER)%
-#include "std_msgs/String.h"
-// %EndTag(MSG_HEADER)%
-
+#include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
+#include <std_msgs/Bool.h>
+#include <sensor_msgs/Image.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include "SR_reader.h"
 #include <sstream>
+#include <iostream>
+#include <opencv2/opencv.hpp>
 
-/**
- * This tutorial demonstrates simple sending of messages over the ROS system.
- */
+using namespace std;
+
+bool g_ack_syn = false; 
+void ackCallback(const std_msgs::BoolPtr& ack)
+{
+  g_ack_syn = ack->data;
+  cout<<"talker.cpp: get ack!"<<endl;
+}
+
+int g_rece_num = 0;
+void numCallback(const std_msgs::Int32Ptr& num)
+{
+  g_rece_num = num->data;
+}
+
+cv::Mat from_SR_to_mat(sr_data& d)
+{
+    unsigned char* p =  (unsigned char*)(&d.intensity_[0]);
+    cv::Mat i_img(sr_data::_sr_height, sr_data::_sr_width, CV_16UC1, p, 
+        sr_data::_sr_width*sizeof(sr_data::_sr_type));
+    return i_img;
+}
+
+
+
 int main(int argc, char **argv)
 {
-  /**
-   * The ros::init() function needs to see argc and argv so that it can perform
-   * any ROS arguments and name remapping that were provided at the command line. For programmatic
-   * remappings you can use a different version of init() which takes remappings
-   * directly, but for most command-line programs, passing argc and argv is the easiest
-   * way to do it.  The third argument to init() is the name of the node.
-   *
-   * You must call one of the versions of ros::init() before using any other
-   * part of the ROS system.
-   */
-// %Tag(INIT)%
   ros::init(argc, argv, "talker");
-// %EndTag(INIT)%
-
-  /**
-   * NodeHandle is the main access point to communications with the ROS system.
-   * The first NodeHandle constructed will fully initialize this node, and the last
-   * NodeHandle destructed will close down the node.
-   */
-// %Tag(NODEHANDLE)%
   ros::NodeHandle n;
-// %EndTag(NODEHANDLE)%
-
-  /**
-   * The advertise() function is how you tell ROS that you want to
-   * publish on a given topic name. This invokes a call to the ROS
-   * master node, which keeps a registry of who is publishing and who
-   * is subscribing. After this advertise() call is made, the master
-   * node will notify anyone who is trying to subscribe to this topic name,
-   * and they will in turn negotiate a peer-to-peer connection with this
-   * node.  advertise() returns a Publisher object which allows you to
-   * publish messages on that topic through a call to publish().  Once
-   * all copies of the returned Publisher object are destroyed, the topic
-   * will be automatically unadvertised.
-   *
-   * The second parameter to advertise() is the size of the message queue
-   * used for publishing messages.  If messages are published more quickly
-   * than we can send them, the number here specifies how many messages to
-   * buffer up before throwing some away.
-   */
-// %Tag(PUBLISHER)%
   ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
-// %EndTag(PUBLISHER)%
+  ros::Publisher syn_pub_ = n.advertise<std_msgs::Bool>("/syn", 1);
+  ros::Publisher exit_pub_ = n.advertise<std_msgs::Bool>("/exit", 1);
+  ros::Subscriber ack_sub_ = n.subscribe("/ack", 1, ackCallback); 
+  ros::Subscriber num_sub_ = n.subscribe("/num_rece", 1, numCallback);
+  
+  // publish sw_image 
+  ros::Publisher img_pub = n.advertise<sensor_msgs::Image>("/camera/sr_image", 1);
 
-// %Tag(LOOP_RATE)%
   ros::Rate loop_rate(10);
-// %EndTag(LOOP_RATE)%
-
-  /**
-   * A count of how many messages we have sent. This is used to create
-   * a unique string for each message.
-   */
-// %Tag(ROS_OK)%
-  int count = 0;
-  while (ros::ok())
+  std_msgs::BoolPtr b_syn_ok(new std_msgs::Bool);
+  b_syn_ok->data = true;
+  
+  // load SR data first 
+  CSReader r; 
+  if(!r.loadAllData())
   {
-// %EndTag(ROS_OK)%
-    /**
-     * This is a message object. You stuff it with data, and then publish it.
-     */
-// %Tag(FILL_MESSAGE)%
-    std_msgs::String msg;
-
-    std::stringstream ss;
-    ss << "hello world " << count;
-    msg.data = ss.str();
-// %EndTag(FILL_MESSAGE)%
-
-// %Tag(ROSCONSOLE)%
-    ROS_INFO("%s", msg.data.c_str());
-// %EndTag(ROSCONSOLE)%
-
-    /**
-     * The publish() function is how you send messages. The parameter
-     * is the message object. The type of this object must agree with the type
-     * given as a template parameter to the advertise<>() call, as was done
-     * in the constructor above.
-     */
-// %Tag(PUBLISH)%
-    chatter_pub.publish(msg);
-// %EndTag(PUBLISH)%
-
-// %Tag(SPINONCE)%
-    ros::spinOnce();
-// %EndTag(SPINONCE)%
-
-// %Tag(RATE_SLEEP)%
-    loop_rate.sleep();
-// %EndTag(RATE_SLEEP)%
-    ++count;
+    ROS_ERROR("talker.cpp: no SR data is loaded!");
+    return -1;
   }
+  
+    ROS_INFO("talker.cpp: wait for syn ack!");
+    // syn first 
+    while(ros::ok() && !g_ack_syn)
+    {
+      syn_pub_.publish(b_syn_ok);
+      ros::spinOnce();
+      loop_rate.sleep();
+    }
+    ROS_INFO("talker.cpp: after syn ack!");
+       
+    // while(ros::ok() && g_rece_num < 20)
+    // send the SR_image 
+    int count = 0; // used to get ack that the image has been received
+    ros::Time msg_timestamp; // ros time, used in the msg.header
+    CSReader::iterator it = r.begin();
+    cv_bridge::CvImage out_msg; 
+    out_msg.encoding = sensor_msgs::image_encodings::TYPE_16UC1; // image type
 
+    while(ros::ok() && it != r.end())
+    {
+      
+      /*  // then send the string
+      std_msgs::String msg;
+      std::stringstream ss;
+      ss << "send number " << count;
+      msg.data = ss.str();
+      ROS_INFO("%s", msg.data.c_str());
+      chatter_pub.publish(msg);
+      */
+      
+      sr_data d = *it; 
+      cv::Mat cv_img = from_SR_to_mat(d); 
+      msg_timestamp = ros::Time();
+      out_msg.header.stamp = msg_timestamp;
+      out_msg.header.seq = count+1;
+      out_msg.image = cv_img;
+      img_pub.publish(out_msg);
 
+      while(g_rece_num != count && ros::ok())
+      {
+        ros::spinOnce();
+        loop_rate.sleep();
+      }
+      ROS_INFO("talker.cpp: number of communicate data: %d , while count = %d", g_rece_num, count);
+      ++count;
+      ++it;
+    }
+  exit_pub_.publish(b_syn_ok);
   return 0;
 }
-// %EndTag(FULLTEXT)%

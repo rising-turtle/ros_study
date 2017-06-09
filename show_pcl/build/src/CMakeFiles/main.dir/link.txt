@@ -1,0 +1,1 @@
+g++     -Wno-deprecated -g     CMakeFiles/main.dir/main.cpp.o  -o ../../bin/main -rdynamic -L/home/davidz/work/ros_hydro_ws/src/show_pcl/lib 

@@ -1,16 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(beginner_tutorials)
+cmake_minimum_required(VERSION 2.4.6)
+project(g2o_exp)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  rospy
-  std_msgs
-  message_generation
-  sensor_msgs
-  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions
@@ -47,16 +42,18 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   Num.msg
- )
+# add_message_files(
+#   FILES
+#   Message1.msg
+#   Message2.msg
+# )
 
 ## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   AddTwoInts.srv
-)
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -66,10 +63,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
- )
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs  # Or other packages containing msgs
+# )
 
 ###################################
 ## catkin specific configuration ##
@@ -80,12 +77,22 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+# catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES g2o_exp
+#  CATKIN_DEPENDS roscpp
+#  DEPENDS system_lib
+# )
+
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES beginner_tutorials
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-#  DEPENDS system_lib
+#  LIBRARIES my_pcl_tutorial
+  CATKIN_DEPENDS pcl_conversions pcl_ros roscpp sensor_msgs 
+  DEPENDS message_runtime std_msgs 
 )
+
+
+SET(CMAKE_CXX_FLAGS "-ggdb -O3 -fPIC -std=c++0x")
 
 ###########
 ## Build ##
@@ -94,24 +101,71 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+
+include_directories(${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
+# link_libraries(rgbdslam ${catkin_LIBRARIES})
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/")
+
+## suitesparse 
+include_directories(/usr/include/suitesparse/)
+
+# for linking to libcxsparse2.2.3
+link_directories("/usr/lib/i386-linux-gnu")
+
+#############################
+# Eigen ####################
+#############################
+# find_package(Eigen)
+set(EIGEN_INCLUDE_DIRS "/usr/include/eigen3")
+include_directories(${EIGEN_INCLUDE_DIRS})
+add_definitions(${EIGEN_DEFINITIONS})
+
+# g2o #######################
+set(G2O_ROOT "/home/davidz/work/3rdlibs/g2o/install")
+# set(G2O_INCLUDE_DIR "${G2O_DIR}/include")
+# set(G2O_LIBRARIES "${G2O_DIR}/lib")
+find_package(G2O REQUIRED)
+set(G2O_INCLUDE_DIRS "${G2O_ROOT}/include")
+include_directories(${G2O_INCLUDE_DIRS})
+message(STATUS "G2O_INCLUDE_DIRS : ${G2O_INCLUDE_DIRS}")
+set(G2O_LIBRARY_DIRS "${G2O_ROOT}/lib")
+link_directories(${G2O_LIBRARY_DIRS})
+# g2o_ext_csparse
+set(G2O_LIBS g2o_types_slam3d g2o_solver_cholmod g2o_solver_pcg g2o_solver_csparse g2o_stuff g2o_core g2o_csparse_extension  g2o_solver_eigen g2o_solver_dense)
+set(G2O_LIBRARIES ${G2O_LIBS} cholmod cxsparse)
+# link_libraries(${G2O_LIBRARIES})
+message("G2o-libraries "${G2O_LIBRARIES})
 
 ## Declare a cpp library
-# add_library(beginner_tutorials
-#   src/${PROJECT_NAME}/beginner_tutorials.cpp
+# add_library(g2o_exp
+#   src/${PROJECT_NAME}/g2o_exp.cpp
 # )
 
+add_executable(test_slam3d_jacobian src/test_slam3d_jacobian.cpp)
+target_link_libraries(test_slam3d_jacobian ${G2O_LIBRARIES} ${catkin_LIBRARIES})
+
+add_executable(g2o_exp src/g2o_in_rgbdslam.cpp)
+target_link_libraries(g2o_exp ${G2O_LIBRARIES} ${catkin_LIBRARIES})
+
+add_executable(g2o_exp2 src/g2o_in_rgbdslam2.cpp)
+target_link_libraries(g2o_exp2 ${G2O_LIBRARIES} ${catkin_LIBRARIES})
+
+add_executable(test_slam3d_se3 src/test_slam3d_se3.cpp)
+target_link_libraries(test_slam3d_se3 ${G2O_LIBRARIES} ${catkin_LIBRARIES})
+
 ## Declare a cpp executable
-# add_executable(beginner_tutorials_node src/beginner_tutorials_node.cpp)
+# add_executable(g2o_exp_node src/g2o_exp_node.cpp)
+
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(beginner_tutorials_node beginner_tutorials_generate_messages_cpp)
+# add_dependencies(g2o_exp_node g2o_exp_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(beginner_tutorials_node
+# target_link_libraries(g2o_exp_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -130,7 +184,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS beginner_tutorials beginner_tutorials_node
+# install(TARGETS g2o_exp g2o_exp_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -155,36 +209,10 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_beginner_tutorials.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_g2o_exp.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-include_directories(include ${catkin_INCLUDE_DIRS} /usr/include/eigen3)
-
-#### build my library 
-add_library(SR_IO src/SR_reader.cpp)
-add_executable(SR_test src/SR_test.cpp)
-
-#############################
-# OpenCV ####################
-#############################
-find_package(OpenCV)
-include_directories(${OpenCV_INCLUDE_DIRS})
-link_directories(${OpenCV_LIBRARY_DIRS})
-
-target_link_libraries(SR_test SR_IO ${catkin_LIBRARIES} ${OpenCV_LIBS})
-
-## ROS sr_sender and sr_receiver 
-add_executable(talker src/talker.cpp)
-target_link_libraries(talker ${catkin_LIBRARIES} SR_IO ${OpenCV_LIBS}) 
-add_dependencies(talker beginner_tutorials_generate_messages_cpp)
-
-add_executable(listener src/listener.cpp)
-target_link_libraries(listener ${catkin_LIBRARIES} ${OpenCV_LIBS})
-add_dependencies(listener beginner_tutorials_generate_messages_cpp)
-
-
